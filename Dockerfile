@@ -20,6 +20,7 @@ WORKDIR /app
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY Gemfile Gemfile.lock ./
 COPY bin/ bin/
+COPY lib/ lib/
 COPY test/ test/
 COPY fixtures/ fixtures/
 

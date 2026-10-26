@@ -1,6 +1,7 @@
 # Architecture Decisions
 
-The base is implemented; the four functional tickets are pending.
+Implementation is proceeding ticket by ticket; current progress and evidence are
+recorded in plan.md.
 Decisions below are agreed with the candidate unless marked
 **proposed**; they are not PO approval. Rate handling and source-of-truth assumptions
 were emailed to the PO; no response has been recorded.
@@ -29,6 +30,12 @@ come from the exercise. Keep the original fixture unchanged.
 
 ## ADR-003 — Conflicting rates
 
+Agreed general policy: unspecified product decisions must be conservative toward
+business risk, reducing underquoting and potential operational losses. Do not
+invent prices, exchange rates or margins when indispensable data is missing.
+Explain trade-offs and flag unresolved ambiguity. This does not change the search
+criterion or guarantee profitability; the feed does not expose actual margins.
+
 When priority or validity is unknown, select the higher valid rate per sailing
 before comparing routes. This reduces underquoting risk but may reduce
 competitiveness. Compare different currencies in EUR; retain the selected original
@@ -50,14 +57,15 @@ These are calculated reference values; ticket tests remain pending.
 Join rates by `sailing_code`. Convert each leg using its departure-date exchange
 rate: `amount_eur = original_amount / exchange_rate`. EUR uses factor 1. Use
 `BigDecimal`, avoid `Float`, and do not round legs to cents before ranking routes.
-Division precision will be defined during implementation. Output original amounts
-and currencies, not converted prices.
+Convert exact decimal inputs to rational EUR values for ranking and summing.
+This avoids an arbitrary division precision or rounded-price ties. Output original
+amounts and currencies, not converted prices.
 
 ## ADR-005 — Dates
 
 Use catalog dates, not today's date. Journey duration is final arrival minus first
 departure. Including connection waits is our interpretation of “total journey time.”
-**Proposed:** allow same-day connections, require positive leg duration and treat
+Allow same-day connections, require positive leg duration and treat
 dates as calendar days. A next leg cannot depart before the previous arrival.
 
 ## ADR-006 — Stack, tests and coverage
@@ -69,9 +77,14 @@ with Gemfile.lock. Build and runtime checks passed on ARM64.
 Minitest and SimpleCov are test-group dependencies. `bin/test` loads the helper
 before discovering `test/**/*_test.rb`. Start coverage before loading application
 code. Report `bin/app` and `lib/**/*.rb`, including unloaded files; exclude test
-infrastructure and dependencies. Generate HTML under `coverage/`, without merging
-older results or enforcing a minimum percentage. Separate Ruby processes require
-separate instrumentation. Current result: zero tests, 0/9 covered lines (0.00%).
+infrastructure and dependencies. Generate HTML under `coverage/`, merging instrumented CLI subprocesses from the
+current suite but clearing older suite results. No minimum percentage is imposed.
+Execution counts and coverage results belong in plan.md.
+
+Tests use `minitest/spec` (`describe`/`it`) with `assert_*`, without extra gems.
+Each ticket has one acceptance file in `test/acceptance/` that runs the real `bin/app`
+in a separate Ruby process; its `describe` titles cite the criterion IDs in spec.md.
+Unit specs in `test/unit/` cover detailed rules, mostly with in-memory data.
 
 ## ADR-007 — Separate calculation from I/O
 
@@ -79,17 +92,26 @@ Route and price rules work with prepared data. Keep file reading, SQLite access
 and console output separate. Reuse the route finder for searches and pending
 reviews. Add coordination classes only when useful; no mandatory extra layers.
 
+Object roles: value objects (`Sailing`, `Quote`, `Leg`, `Route`, `SearchRequest`);
+`Feed::JsonSource`, the feed parsers and `Catalog` build legs from the JSON file;
+`RatePolicy::HighestQuote` applies ADR-003; criteria are strategies (ADR-012);
+`RouteFinder` searches; `RouteSerializer` owns the seven output fields; `CLI::OptionsParser`
+parses flags and `Forms::SearchForm` validates stdin; each service runs one use case.
+`CLI::Application` is the only place that wires files and the console. `Shypple::Error`
+subclasses and file-system errors exit 1 with their message on stderr; other exceptions
+are programming errors and are not rescued.
+
 ## ADR-008 — Storage
 
 Use one current JSON catalog, without versions or catalog copies in SQLite. The
 SQLite file lives at `/app/data/shypple.sqlite3`, mounted through the
 `shypple-routing-data` volume.
 
-**Proposed schema:** `saved_searches` holds request details and `pending`/`resolved`
-status; `notifications` holds selected legs and `pending`/`acknowledged` status.
-Deduplicate equivalent pending requests and create one notification per resolved
-request. Resolve a search and create its notification in one transaction. Catalog
-file updates are separate. Enable foreign keys and use parameterized SQL.
+Use one SQLite table for request details, a nullable result and an acknowledgment
+flag. A missing result is pending; a stored result is resolved and visible until
+acknowledged. One atomic result update resolves the request and creates its notice,
+without a second table. Deduplicate equivalent pending requests, but allow a new
+request after a prior one resolves. Catalog updates remain separate. Use parameterized SQL.
 
 ## ADR-009 — Manual pending review
 
@@ -97,9 +119,10 @@ file updates are separate. Enable foreign keys and use parameterized SQL.
 requests plus available, unacknowledged results. No stdin input or background
 process is needed. New catalog routes are also available to normal searches.
 
-**Proposed:** `--feed PATH` selects the shared catalog file; `notifications` lists
-notices and `acknowledge ID` confirms one. Define administrative JSON in SLD-0004,
-without changing the required search output.
+`--feed PATH` selects the shared catalog file. `--pending` returns `pending` and
+`available` arrays; each available record includes its result. `--ack ID` confirms
+a resolved request and is idempotent. Reject unknown/unresolved IDs and combined
+modes. No separate notifications command is needed. Exact fields are in spec.md.
 
 ## ADR-010 — Resolved versus seen
 
@@ -117,7 +140,7 @@ in the exercise. EUR needs no exchange entry.
 
 Invalid data stops the operation without changing searches or notices. Do not
 silently omit candidates or substitute another day's exchange rate.
-**Proposed:** consolidate identical duplicates and reject a sailing code with
+Consolidate identical duplicates and reject a sailing code with
 incompatible routes or dates. The sample has nine sailings, ten rates and all
 required exchanges; only `MNOP` has conflicting rates.
 
@@ -128,9 +151,15 @@ Use dynamic programming: minimum accumulated cost for `cheapest`, latest initial
 departure per reachable sailing for `fastest`; retain predecessors to reconstruct
 the route. No artificial two-leg limit or blanket ban on revisiting ports.
 
-Proposed ties: fewer legs, then lexicographic sailing-code sequence. Initial edge
+Selected ties: fewer legs, then lexicographic sailing-code sequence. Equal-value
+quotes of one sailing use the smallest original currency/amount string pair only
+after applying the higher-price rule. Initial edge
 construction can be O(N²), followed by O(N + E) traversal, plus reconstruction and
 tie-breaking costs.
+
+Each criterion is a strategy object registered by name in `Criteria`. It supplies its
+ranking keys, so `RouteFinder` never branches on criterion names; a new criterion
+adds one class and one registry entry.
 
 ## ADR-013 — Delivery steps
 

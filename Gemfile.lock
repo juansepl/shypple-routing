@@ -1,7 +1,10 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bigdecimal (4.0.1)
+    date (3.5.1)
     drb (2.2.3)
+    json (2.18.0)
     mini_portile2 (2.8.9)
     minitest (6.0.6)
       drb (~> 2.0)
@@ -15,12 +18,18 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bigdecimal (= 4.0.1)
+  date (= 3.5.1)
+  json (= 2.18.0)
   minitest (= 6.0.6)
   simplecov (= 1.3.2)
   sqlite3 (= 2.10.1)
 
 CHECKSUMS
+  bigdecimal (4.0.1) sha256=8b07d3d065a9f921c80ceaea7c9d4ae596697295b584c296fe599dd0ad01c4a7
+  date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
+  json (2.18.0) sha256=b10506aee4183f5cf49e0efc48073d7b75843ce3782c68dbeb763351c08fd505
   mini_portile2 (2.8.9) sha256=0cd7c7f824e010c072e33f68bc02d85a00aeb6fce05bb4819c03dfd3c140c289
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85

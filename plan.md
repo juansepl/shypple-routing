@@ -11,8 +11,8 @@ test scenarios belong in [docs/spec.md](docs/spec.md); working rules are in
 | 0 | Project base | None | accepted |
 | Workflow setup | Orchestrator, specialized roles and SDD rules | Base | accepted |
 | Specification setup | Initial requirements, scenarios and implementation plan | Workflow setup | accepted |
-| REQ-01 | PLS-0001: cheapest direct route | Base and reviewed active specification | pending |
-| REQ-02 | WRT-0002: cheapest direct or indirect route | REQ-01 | pending |
+| REQ-01 | PLS-0001: cheapest direct route | Base and reviewed active specification | accepted |
+| REQ-02 | WRT-0002: cheapest direct or indirect route | REQ-01 | in_progress |
 | REQ-03 | TST-0003: fastest direct or indirect route | REQ-02 | pending |
 | REQ-04 | SLD-0004: saved searches and manual pending review | All three criteria | pending |
 | Delivery | Full acceptance, usage documentation and ZIP | All four tickets | pending |
@@ -25,15 +25,15 @@ an implemented feature; a test run with zero cases is not ticket acceptance.
 
 The planned initial sequence has **seven commits**: one base, one AI workflow,
 one specification/plan and four functional requirements. The base and workflow
-commits are recorded below; this document belongs to the specification/plan commit.
-The four functional commits remain pending.
+commits are recorded below; the initial specification/plan was committed separately.
+Functional commits are recorded below as each validated requirement is committed.
 
 | Order | Message / scope | Commit status |
 |---|---|---|
 | 1 | Project bootstrap: Ruby, Docker, SQLite and test framework | Committed as `38965f2`; preserve the existing commit |
 | 2 | `chore: configure AI-assisted development workflow` — AGENTS.md, role instructions and SDD rules | Committed as `d2324db` |
-| 3 | `docs: define requirements and implementation plan` — docs/spec.md, plan.md and their README links | Included in this commit |
-| 4 | `feat: implement REQ-01 with automated tests` — code, tests and progress | Pending implementation |
+| 3 | `docs: define requirements and implementation plan` — docs/spec.md, plan.md and their README links | Committed as `fc714f2` |
+| 4 | `feat: implement REQ-01 with automated tests` — code, tests and progress | Included in this commit; Docker suite and independent review passed |
 | 5 | `feat: implement REQ-02 with automated tests` — code, tests and progress | Pending implementation |
 | 6 | `feat: implement REQ-03 with automated tests` — code, tests and progress | Pending implementation |
 | 7 | `feat: implement REQ-04 with automated tests` — code, tests and progress | Pending implementation |
@@ -89,17 +89,37 @@ real-console acceptance rules. CLI checks remain pending for each functional tic
 
 ## Phase 1 — PLS-0001
 
-- [ ] Specify active criteria and map test scenarios.
-- [ ] Settle relevant proposed behavior before affected tests are written.
-- [ ] Write Minitest cases and confirm expected failures.
-- [ ] Implement the ticket and verify affected tests plus the existing suite.
-- [ ] Run real CLI acceptance cases for success, no route and invalid input.
-- [ ] Reviewer accepts the scoped change, or findings are corrected and rechecked.
+Active stage: **SPECIFY → WRITE TESTS → IMPLEMENT**. The user authorized the
+remaining implementation, verification and review phases, prioritizing the least
+code needed to satisfy the requirements. Resolve working policies in the spec,
+then proceed sequentially through the four tickets. No new commits are authorized.
+
+- [x] Specify active criteria and map test scenarios (analysis draft).
+- [x] Settle relevant proposed behavior before affected tests are written.
+- [x] Write Minitest cases and confirm expected failures.
+- [x] Implement the ticket and verify affected tests plus the existing suite.
+- [x] Run real CLI acceptance cases for success, no route and invalid input.
+- [x] Reviewer accepts the scoped change, or findings are corrected and rechecked.
 - [ ] Update progress and prepare the ticket commit when requested.
+
+Earlier analysis draft: Requirements Analyst retained the four REQ-01 acceptance IDs and
+expanded its scenarios from 8 to 16. New decision groups REQ-01-D-01 through D-04
+cover exact price ordering, genuine ties, stdin boundaries and feed/error policy;
+they remain proposed for user review. The existing higher-value rule for unequal
+quotes of the same sailing is unchanged and precedes comparison between routes.
+Read-only sample calculations still select `ABCD` (about EUR 523.357016).
+No project tests were added or run; no production code or commits were created.
+The user confirmed a general conservative-business-risk principle for unspecified
+product decisions. Apply it to proposed behavior without inventing pricing data
+or changing the requested search criterion. D-01 through D-04 were selected as working policies under the later authorization
+to complete the solution; the exact policies are in docs/spec.md.
 
 ## Phase 2 — WRT-0002
 
-- [ ] Refine its criteria and connection scenarios.
+Active stage: **WRITE TESTS → IMPLEMENT**. Exact rational sums, same-day
+connections and deterministic route ties are selected in docs/spec.md.
+
+- [x] Refine its criteria and connection scenarios.
 - [ ] Write tests and confirm expected failures.
 - [ ] Implement and verify the ticket and existing behavior.
 - [ ] Run real CLI cases asserting the selected multi-leg route and process contract.
@@ -135,16 +155,24 @@ Add a compact row when actual ticket work starts; do not prefill successful resu
 
 | Ticket / criterion IDs | Tests, including real CLI cases | Docker command | Exit code and expected vs. observed console result | Reviewer verdict / remaining work |
 |---|---|---|---|---|
-| — | — | — | No functional ticket execution yet | — |
+| REQ-01 / PLS-0001-AC-01–04 (RED) | Real-CLI cases before direct routing | `docker run --rm --network none -v "$PWD/coverage:/app/coverage" shypple-routing:dev bundle exec ruby bin/test` | Exit 1; 20 tests, 44 assertions, 20 expected failures, 0 errors | Behavioral RED against the scaffold, after dependencies were available; implementation in progress |
+| REQ-01 / PLS-0001-AC-01–04 (GREEN) | `test/acceptance/pls_0001_test.rb` real CLI subprocess cases, plus unit specs | Same Docker suite command; original-fixture console smoke | Exit 0; 49 runs (20 CLI), 350 assertions, no failures/errors/skips; 246/246 covered lines (100.00%); smoke returns `ABCD`, `589.30 USD` | Accepted independently; runtime verified and README drift fixed/rechecked |
 
 Record expected red failures separately from unexpected failures. Build or coverage
 results alone do not prove functional acceptance. If a check is not run, say why.
 Record blocking findings and their resolution here, without a separate report file.
 
+Structure refactor: after the tickets were accepted, the code was split into
+single-purpose objects (ADR-007) and each ticket's real-CLI cases moved to
+`test/acceptance/` in `describe`/`it` (ADR-006), with unit specs added. The real-CLI
+cases were the unchanged behavior contract during that refactor. RED rows keep the
+original test-first counts; GREEN rows report the suite at each ticket's commit,
+where runs include unit specs and the CLI case count is in parentheses.
+
 Console checks are automated Minitest integration tests executed by `bin/test`,
 not calls to internal methods alone. Follow AGENTS.md's Console Acceptance rules.
-The application is still a scaffold: all route and pending-review acceptance checks
-remain pending. The previously recorded startup check is not route acceptance.
+Route acceptance for the implemented tickets is recorded above; later tickets add
+their rows when implemented. The startup check is not route acceptance.
 
 ## Delivery
 
@@ -156,3 +184,6 @@ remain pending. The previously recorded startup check is not route acceptance.
 The optional `--explain` view is deferred. No background watcher, catalog versioning
 or external notification delivery is planned. Do not send the ZIP or publish the
 repository without user authorization.
+
+Commit preparation check: the reviewed cumulative source for this phase was rebuilt
+and its complete real-CLI Minitest suite passed in Docker before committing.

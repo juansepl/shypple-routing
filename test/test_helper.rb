@@ -1,10 +1,4 @@
-require "simplecov"
-
-SimpleCov.start do
-  root File.expand_path("..", __dir__)
-  command_name "Minitest"
-  cover "lib/**/*.rb", "bin/app"
-  merging false
-end
-
+require "fileutils"
+FileUtils.rm_f(File.expand_path("../coverage/.resultset.json", __dir__))
+require_relative "coverage"
 require "minitest/autorun"

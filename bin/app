@@ -1,16 +1,3 @@
-require "fileutils"
-require "sqlite3"
+require_relative "../lib/shypple"
 
-database_path = ENV.fetch("DATABASE_PATH", "/app/data/shypple.sqlite3")
-FileUtils.mkdir_p(File.dirname(database_path))
-new_database = !File.exist?(database_path) || File.zero?(database_path)
-
-database = SQLite3::Database.new(database_path)
-begin
-  # Initialize a valid SQLite file without creating ticket-specific tables.
-  database.execute("PRAGMA user_version = 0") if new_database
-ensure
-  database.close
-end
-
-warn "Project base ready. Route search is not implemented yet."
+exit Shypple::CLI::Application.new(argv: ARGV, stdin: $stdin, stdout: $stdout, stderr: $stderr).call

@@ -74,6 +74,11 @@ specific expected output. The orchestrator remains responsible for the result.
 - Preserve the default three-line stdin and JSON stdout contract.
 - Use one current JSON catalog and SQLite in the persistent Docker volume.
 - Follow the agreed conservative rate policy and departure-date conversion.
+- Resolve unspecified product decisions conservatively to reduce underquoting and
+  operational-loss risk. Explain the business trade-off; do not invent prices,
+  exchange rates or margins to complete a quote. Missing indispensable pricing
+  data must produce a clear error. This principle does not replace the requested
+  cheapest/fastest criterion or establish a guarantee of profitability.
 - Keep changes within the active ticket and preserve unrelated user edits.
 - Keep working documentation and code comments in English. Do not update or
   synchronize the Spanish documents stored outside this repository.

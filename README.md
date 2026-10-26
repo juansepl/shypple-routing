@@ -3,8 +3,8 @@
 Ruby CLI to find the cheapest or fastest shipping route and save searches that
 can be fulfilled when new sailings arrive.
 
-**Implemented:** Docker, persistent SQLite, Minitest and coverage configuration.
-The four functional tickets are still pending.
+**Implemented:** Docker, SQLite setup, Minitest/SimpleCov and cheapest-direct routing.
+Indirect routes, fastest selection and saved searches are the next tickets.
 
 ## 1. Tech Stack
 
@@ -20,18 +20,20 @@ Requires Docker. From the project root, with Docker Compose:
 ```bash
 docker volume create shypple-routing-data
 docker compose build
-docker compose run --rm app
+printf 'CNSHA\nNLRTM\ncheapest-direct\n' | docker compose run --rm -T app
 ```
 
 Or with Docker only:
 
 ```bash
 docker build -t shypple-routing:dev .
-docker run --rm -i -v shypple-routing-data:/app/data shypple-routing:dev
+printf 'CNSHA\nNLRTM\ncheapest-direct\n' | docker run --rm -i -v shypple-routing-data:/app/data shypple-routing:dev
 ```
 
-The base creates `/app/data/shypple.sqlite3` and exits. No migrations are needed
-yet. The named volume keeps the database between runs. Building downloads dependencies.
+Search reads origin, destination and criterion from stdin and prints JSON only to
+stdout. With the sample catalog, `cheapest-direct` returns `ABCD`. Errors go to
+stderr with exit code 1. SQLite is reserved for the saved-search ticket; no
+migration step is required. Building downloads dependencies.
 
 See the [challenge](docs/CHALLENGE.md) and [sample catalog](fixtures/response.json).
 
@@ -49,15 +51,19 @@ Without Compose:
 docker run --rm -v "$PWD/coverage:/app/coverage" shypple-routing:dev bundle exec ruby bin/test
 ```
 
-Tests belong in `test/**/*_test.rb`. SimpleCov prints line coverage and generates
-`coverage/index.html`, including untested application files. There are currently
-**zero tests and 0.00% coverage**. Each ticket will add its tests.
+Acceptance specs in `test/acceptance/` run the real CLI for each ticket, including
+valid routes, input errors and feed validation; unit specs in `test/unit/` cover
+detailed rules. SimpleCov aggregates subprocess coverage and generates
+`coverage/index.html`, including untested application files. Each new ticket adds
+its own cases; current execution evidence is in plan.md.
 
 ## 4. Technical Decisions
 
 - Plain Ruby CLI for the required stdin/stdout interface.
 - SQLite in a persistent volume, without a database server.
 - Pinned image and locked dependencies for reproducibility.
+- Single-purpose objects: feed parsers, criterion strategies, forms, services and a
+  CLI application that wires them (ADR-007).
 
 See [Architecture Decisions](docs/ARCHITECTURE-DECISIONS.md).
 
@@ -75,7 +81,8 @@ See [AGENTS.md](AGENTS.md) for orchestration and role instructions,
 
 ## 6. Limitations
 
-- Route selection, pending searches and notifications are not implemented yet.
+- Only `cheapest-direct` is implemented so far; the other criteria and pending
+  searches will be added in their respective tickets.
 - Checks ran on ARM64; AMD64 execution is unverified.
 - Background notifications, catalog versioning and a web interface are out of scope.
 - Optional `--explain` output is deferred until the required tickets are complete.

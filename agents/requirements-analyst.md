@@ -22,6 +22,9 @@ Read `AGENTS.md`, `docs/CHALLENGE.md`, `docs/ARCHITECTURE-DECISIONS.md`,
 - Maintain `docs/spec.md`; do not edit production code, tests or project progress.
 - Describe observable outcomes rather than prescribing classes or algorithms.
 - Do not invent business requirements or promote proposals to confirmed rules.
+- Apply the agreed conservative business-risk principle to unspecified product
+  behavior. Explain the proposal and its trade-off; do not invent charges or
+  treat missing pricing data as a valid quote.
 - Do not duplicate implementation status or test execution results in the specification.
 - Report ambiguities affecting the active criteria before implementation starts.
 
