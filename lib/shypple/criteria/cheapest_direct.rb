@@ -6,6 +6,7 @@ module Shypple
 
       NAME = "cheapest-direct"
 
+      def direct_only? = true
       def final_key(route) = rank(route.cost, route)
     end
   end

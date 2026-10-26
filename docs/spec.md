@@ -190,7 +190,7 @@ Find the lowest total price among valid direct and indirect routes.
 | WRT-0002-TC-04 | Intermediate ports differ, or onward departure precedes arrival → exclude the connection. | AC-02 |
 | WRT-0002-TC-05 | Legs have different currencies/dates → rank by their converted sum without rounding each leg to cents. | AC-03 |
 | WRT-0002-TC-06 | Sailings exist but no complete feasible path → `[]`. | AC-02, AC-04 |
-| WRT-0002-TC-07 | A feasible path revisits a port later → do not reject solely for repeated ports; disallow temporally impossible sailing reuse. | AC-01, AC-02 |
+| WRT-0002-TC-07 | Catalog contains chronologically feasible sailings that form a positive-cost port cycle → terminate and return the finite cheapest complete route without taking the unnecessary cycle; do not hang or reuse a sailing impossibly. Waiting at the repeated port can replace the cycle, so a repeated-port path need not be selected. | AC-01, AC-02 |
 | WRT-0002-TC-08 | Near-equal totals containing repeating converted fractions → choose the exactly cheaper rational sum, without per-leg or total cent rounding. | AC-03 |
 | WRT-0002-TC-09 | Onward departure equals prior arrival → connection is feasible; earlier departure is not. | AC-02 |
 | WRT-0002-TC-10 | Exact equal total costs → prefer fewer legs, then lexicographic code path, independent of catalog order. | AC-01, AC-03, AC-04 |

@@ -3,8 +3,8 @@
 Ruby CLI to find the cheapest or fastest shipping route and save searches that
 can be fulfilled when new sailings arrive.
 
-**Implemented:** Docker, SQLite setup, Minitest/SimpleCov and cheapest-direct routing.
-Indirect routes, fastest selection and saved searches are the next tickets.
+**Implemented:** Docker, SQLite setup, Minitest/SimpleCov and direct/indirect cheapest routing.
+Fastest selection and saved searches are the next tickets.
 
 ## 1. Tech Stack
 
@@ -81,8 +81,8 @@ See [AGENTS.md](AGENTS.md) for orchestration and role instructions,
 
 ## 6. Limitations
 
-- Only `cheapest-direct` is implemented so far; the other criteria and pending
-  searches will be added in their respective tickets.
+- `cheapest-direct` and `cheapest` are implemented; fastest routing and pending
+  searches are the next tickets.
 - Checks ran on ARM64; AMD64 execution is unverified.
 - Background notifications, catalog versioning and a web interface are out of scope.
 - Optional `--explain` output is deferred until the required tickets are complete.

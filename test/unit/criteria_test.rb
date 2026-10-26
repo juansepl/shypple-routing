@@ -28,4 +28,15 @@ describe Shypple::Criteria do
       assert_equal %w[A], routes.min_by { |candidate| criterion.final_key(candidate) }.codes
     end
   end
+
+  describe "Cheapest" do
+    let(:criterion) { Shypple::Criteria::Cheapest.new }
+
+    it "ranks by the sum of leg costs, then by fewer legs" do
+      direct = route(leg("Z", cost: 20))
+      connected = route(leg("A", destination: "ESBCN", cost: 10), leg("B", origin: "ESBCN", cost: 10))
+      cheaper = route(leg("C", destination: "ESBCN", cost: 5), leg("D", origin: "ESBCN", cost: 10))
+      assert_equal [cheaper, direct, connected], [direct, connected, cheaper].sort_by { |candidate| criterion.final_key(candidate) }
+    end
+  end
 end
