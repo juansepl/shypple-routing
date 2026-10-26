@@ -96,10 +96,11 @@ Object roles: value objects (`Sailing`, `Quote`, `Leg`, `Route`, `SearchRequest`
 `Feed::JsonSource`, the feed parsers and `Catalog` build legs from the JSON file;
 `RatePolicy::HighestQuote` applies ADR-003; criteria are strategies (ADR-012);
 `RouteFinder` searches; `RouteSerializer` owns the seven output fields; `CLI::OptionsParser`
-parses flags and `Forms::SearchForm` validates stdin; each service runs one use case.
-`CLI::Application` is the only place that wires files and the console. `Shypple::Error`
-subclasses and file-system errors exit 1 with their message on stderr; other exceptions
-are programming errors and are not rescued.
+parses flags and forms validate stdin and the `--ack` ID; each service runs one use case;
+`Persistence::SavedSearchRepository` holds the SQL (ADR-008). `CLI::Application` is the
+only place that wires files, SQLite and the console. `Shypple::Error` subclasses and
+file-system, stored-JSON and SQLite errors exit 1 with their message on stderr; other
+exceptions are programming errors and are not rescued.
 
 ## ADR-008 — Storage
 
@@ -112,6 +113,10 @@ flag. A missing result is pending; a stored result is resolved and visible until
 acknowledged. One atomic result update resolves the request and creates its notice,
 without a second table. Deduplicate equivalent pending requests, but allow a new
 request after a prior one resolves. Catalog updates remain separate. Use parameterized SQL.
+
+SQL lives only in `Persistence::Schema` and `Persistence::SavedSearchRepository`,
+which opens the database on first use. Pending review and acknowledgment are services
+that depend on the repository's methods, not on SQLite.
 
 ## ADR-009 — Manual pending review
 

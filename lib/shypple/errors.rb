@@ -6,4 +6,7 @@ module Shypple
 
   # The feed breaks a data-quality rule (ADR-011); no partial catalog is used.
   class InvalidCatalog < Error; end
+
+  # --ack names a search that does not exist or has no result yet.
+  class UnknownRequest < Error; end
 end

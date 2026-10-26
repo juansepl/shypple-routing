@@ -69,6 +69,9 @@ specific expected output. The orchestrator remains responsible for the result.
 
 - Ruby 4.0.9 CLI; Docker is the reproducible execution environment.
 - Use configured Minitest and SimpleCov, not RSpec or Rails.
+- Keep tests tied to acceptance criteria or concrete regression risks. Prefer
+  representative invalid inputs and combine overlapping scenarios; do not add
+  tests solely to increase coverage.
 - Prefer standard-library facilities; justify new dependencies.
 - Separate route and price calculations from file, database and console I/O.
 - Preserve the default three-line stdin and JSON stdout contract.
@@ -101,7 +104,7 @@ docker compose run --rm -v ./coverage:/app/coverage app bundle exec ruby bin/tes
 git diff --check
 ```
 
-Docker-only alternatives are in `README.md`. Rebuild after changing files copied
+Setup and usage commands are in `README.md`. Rebuild after changing files copied
 into the image; Compose does not bind-mount application code. The test report is
 `coverage/index.html`. No coverage threshold is currently configured. Tests that
 spawn Ruby processes need instrumentation in those processes to contribute coverage.

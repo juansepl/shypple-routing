@@ -9,5 +9,6 @@ module Shypple
     ALL = [CheapestDirect, Cheapest, Fastest].to_h { |criterion| [criterion::NAME, criterion.new] }.freeze
 
     def self.fetch(name) = ALL.fetch(name) { raise InvalidInput, "unknown criterion #{name}" }
+    def self.names = ALL.keys
   end
 end

@@ -12,18 +12,11 @@ describe "TST-0003 fastest search through the CLI" do
       assert_equal ["QRST"], fastest
     end
 
-    it "can choose a more expensive indirect route" do
-      legs = [sailing("DIRECT"), sailing("A", destination: "X", arrival: "2022-01-02"),
-              sailing("B", origin: "X", departure: "2022-01-02", arrival: "2022-01-03")]
-      quotes = [rate("DIRECT", "1", "EUR"), rate("A", "100", "EUR"), rate("B", "100", "EUR")]
-      assert_equal %w[A B], fastest(catalog(legs, quotes))
-    end
-
-    it "connects three legs" do
+    it "selects three legs even when the direct sailing is cheaper" do
       legs = [sailing("DIRECT"), sailing("A", destination: "X", arrival: "2022-01-02"),
               sailing("B", origin: "X", destination: "Y", departure: "2022-01-02", arrival: "2022-01-03"),
               sailing("C", origin: "Y", departure: "2022-01-03", arrival: "2022-01-04")]
-      quotes = %w[DIRECT A B C].map { |code| rate(code, "1", "EUR") }
+      quotes = [rate("DIRECT", "1", "EUR"), *%w[A B C].map { |code| rate(code, "100", "EUR") }]
       assert_equal %w[A B C], fastest(catalog(legs.reverse, quotes))
     end
 

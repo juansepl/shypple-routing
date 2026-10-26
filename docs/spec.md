@@ -64,8 +64,8 @@ original ticket IDs in acceptance criteria and scenarios for traceability.
 ## REQ-01 / PLS-0001 — Cheapest Direct Sailing
 
 Find the cheapest single-leg route between the requested ports. Duration does
-not determine the winner. The working policies below are selected for implementation
-under the user's authorization; they are not a claim of implemented behavior or PO approval.
+not determine the winner. The selected policies below are candidate engineering
+choices, not PO approval.
 
 ### Acceptance Criteria
 
@@ -73,7 +73,7 @@ under the user's authorization; they are not a claim of implemented behavior or 
 |---|---|
 | PLS-0001-AC-01 | Consider only single-leg sailings matching both requested ports; do not compare an indirect route with the direct candidates. |
 | PLS-0001-AC-02 | Select the mathematically lowest EUR price after applying the agreed higher-conflict policy and each sailing's departure-date conversion; never round legs to cents before ranking. Apply the deterministic tie rules below only to mathematically equal prices. |
-| PLS-0001-AC-03 | Return one chosen leg in the shared format with its original feed values and quote, or `[]` if no direct exists. Success and no-route are normal results; saving requests is outside REQ-01 and belongs to REQ-04. |
+| PLS-0001-AC-03 | Return one chosen leg in the shared format with its original feed values and quote, or `[]` if no direct exists. Success and no-route are normal results; request persistence is specified by REQ-04. |
 | PLS-0001-AC-04 | Reject invalid input or indispensable invalid feed data with a nonzero status and diagnostics on stderr, not a successful route response. Validate the complete catalog, not just matching direct candidates. Apply the validation and process outcomes below. |
 
 ### Already Agreed
@@ -81,10 +81,9 @@ under the user's authorization; they are not a claim of implemented behavior or 
 Use the default three-line CLI, original JSON data/output fields, departure-date
 EUR comparison, the higher valid conflicting quote, and strictly positive prices.
 Invalid catalog data cannot be silently skipped to make another sailing win.
-These rules do not require a date input, live exchange lookup or search persistence
-in this ticket. `cheapest` and `fastest` are valid challenge criteria reserved for
-REQ-02/03; before their implementation they must not be described as globally
-invalid criteria or silently evaluated as `cheapest-direct`.
+These rules require neither a date input nor a live exchange lookup. `cheapest`
+and `fastest` are valid criteria defined by REQ-02/03; neither is an alias or
+fallback for `cheapest-direct`. Request persistence is specified by REQ-04.
 
 The order of decisions is explicit:
 
@@ -143,7 +142,6 @@ combining `--pending` with `--ack` fail clearly. These modes do not introduce a
 | Matching route | Required ordered JSON leg array, original fields/values | Optional diagnostics only | 0 |
 | Valid query without a route, including unknown ports | `[]` | Optional diagnostics only | 0 |
 | Invalid input, flags, catalog or acknowledgment | Empty | Clear diagnostic; exact wording is not fixed | 1 |
-| Recognized `cheapest`/`fastest` before its ticket exists | Empty | Criterion recognized but not implemented in that phase | 1 |
 
 ### Test Scenarios
 
@@ -156,9 +154,9 @@ IDs are preserved; exercise the real CLI as described under Automated CLI Verifi
 | PLS-0001-TC-02 | Mixed currencies/date-specific changes reverse nominal ranking → choose by converted EUR price using each departure date. | AC-02 |
 | PLS-0001-TC-03 | `MNOP` has USD 456.78/812.00 in either order → use USD 812.00; the sample query selects `ABCD`. | AC-02 |
 | PLS-0001-TC-04 | Quote already in EUR, without EUR exchange entry → compare unchanged and retain original quote. | AC-02, AC-03 |
-| PLS-0001-TC-05 | Only indirects or no route exist → `[]`, normal exit; do not persist a search in REQ-01. | AC-01, AC-03 |
+| PLS-0001-TC-05 | Only indirects or no route exist → `[]`, normal exit; request persistence follows REQ-04. | AC-01, AC-03 |
 | PLS-0001-TC-06 | Valid selection → exactly the seven required string-valued fields, original quote/date values, no diagnostic text in stdout and exit 0. | AC-03 |
-| PLS-0001-TC-07 | Missing/blank input or unknown criterion → error; known later criteria are recognized but reported unimplemented until their own tickets. Apply the selected stream/status policy. | AC-04 |
+| PLS-0001-TC-07 | Missing/blank input or a criterion outside the three supported names → error with empty stdout, diagnostic stderr and exit 1. | AC-04 |
 | PLS-0001-TC-08 | Missing quote/change, invalid date or missing/non-numeric/zero/negative price anywhere in the catalog → fail rather than remove a candidate silently. | AC-04 |
 | PLS-0001-TC-09 | D-01: `1 / 3` versus EUR `0.3333333333333333333333333334` → the former is cheaper; rounding must not turn them into a tie. Repeat equivalent near-equal comparisons for higher conflicting quotes. | AC-02 |
 | PLS-0001-TC-10 | D-02: distinct direct sailings have mathematically equal EUR costs but different durations → choose smallest sailing code regardless of duration or file order. | AC-02, AC-03 |
@@ -290,7 +288,7 @@ scenario IDs above.
 - REQ-01/02/03 must exercise the sample winners below through that interface,
   plus scenario-specific fixtures for conversion, connections, duration and
   multiple legs. Also check no-route output (`[]`) and invalid-input failures as
-  processes. Saving unsuccessful requests is required only once REQ-04 is built.
+  processes. Verify unsuccessful-request persistence under REQ-04.
 - REQ-04 must run multiple CLI processes against one isolated persistent test
   database: save a missing route, update a temporary catalog, invoke `--pending`,
   inspect its parsed result, then acknowledge through `--ack ID`.
@@ -307,7 +305,8 @@ need explicit coverage instrumentation to contribute to SimpleCov results.
 
 For `CNSHA → NLRTM` in `fixtures/response.json`, under the higher-conflict policy:
 `cheapest-direct` → `ABCD`; `cheapest` → `ERXQ`, `ETRG`;
-`fastest` → `QRST` (17 days). These are analysis references, not executed tests.
+`fastest` → `QRST` (17 days). These are expected fixture outputs; actual test
+execution and review evidence is recorded in `plan.md`.
 
 ## Policy Status
 

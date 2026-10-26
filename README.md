@@ -1,21 +1,14 @@
 # Technical Challenge
 
-Ruby CLI to find the cheapest or fastest shipping route and save searches that
-can be fulfilled when new sailings arrive.
-
-**Implemented:** all three route criteria, Docker, SQLite setup and Minitest/SimpleCov.
-Saved searches and manual notifications are the remaining ticket.
+Ruby CLI to find shipping routes by price or duration and save searches without results.
 
 ## 1. Tech Stack
 
-- Ruby 4.0.9 and Bundler 4.0.20.
-- SQLite (`sqlite3` 2.10.1) in a Docker volume.
-- Docker / optional Docker Compose.
-- Minitest 6.0.6 and SimpleCov 1.3.2.
+Ruby 4.0.9, SQLite, Docker Compose, Minitest and SimpleCov.
 
 ## 2. Getting Started
 
-Requires Docker. From the project root, with Docker Compose:
+With Docker running, execute from the project root:
 
 ```bash
 docker volume create shypple-routing-data
@@ -23,66 +16,54 @@ docker compose build
 printf 'CNSHA\nNLRTM\ncheapest-direct\n' | docker compose run --rm -T app
 ```
 
-Or with Docker only:
+Enter origin, destination and criterion on three lines: `cheapest-direct`,
+`cheapest` or `fastest`. Returns a JSON route, or `[]` and saves the search.
+
+Review pending searches and acknowledge a result (`1` is an ID from `available`):
 
 ```bash
-docker build -t shypple-routing:dev .
-printf 'CNSHA\nNLRTM\ncheapest-direct\n' | docker run --rm -i -v shypple-routing-data:/app/data shypple-routing:dev
+docker compose run --rm -T app bundle exec ruby bin/app --pending
+docker compose run --rm -T app bundle exec ruby bin/app --ack 1
 ```
 
-Search reads origin, destination and criterion from stdin and prints JSON only to
-stdout. With the sample catalog, `cheapest-direct` returns `ABCD`. Errors go to
-stderr with exit code 1. SQLite is reserved for the saved-search ticket; no
-migration step is required. Building downloads dependencies.
+To update the catalog, copy and edit the sample, then use it for searches and reviews:
 
-See the [challenge](docs/CHALLENGE.md) and [sample catalog](fixtures/response.json).
+```bash
+cp fixtures/response.json fixtures/current.json
+# Edit fixtures/current.json:
+printf 'CNSHA\nNLRTM\ncheapest\n' | docker compose run --rm -T -v "$PWD/fixtures:/feeds:ro" app bundle exec ruby bin/app --feed /feeds/current.json
+docker compose run --rm -T -v "$PWD/fixtures:/feeds:ro" app bundle exec ruby bin/app --feed /feeds/current.json --pending
+```
 
 ## 3. Running Tests
 
-After building:
+Rebuild after changing code or tests:
 
 ```bash
-docker compose run --rm -v ./coverage:/app/coverage app bundle exec ruby bin/test
+docker compose build
+docker compose run --rm -T -v ./coverage:/app/coverage app bundle exec ruby bin/test
 ```
 
-Without Compose:
-
-```bash
-docker run --rm -v "$PWD/coverage:/app/coverage" shypple-routing:dev bundle exec ruby bin/test
-```
-
-Acceptance specs in `test/acceptance/` run the real CLI for each ticket, including
-valid routes, input errors and feed validation; unit specs in `test/unit/` cover
-detailed rules. SimpleCov aggregates subprocess coverage and generates
-`coverage/index.html`, including untested application files. Each new ticket adds
-its own cases; current execution evidence is in plan.md.
+Acceptance specs in `test/acceptance/` run the real CLI per ticket; unit specs in
+`test/unit/` cover detailed rules. Coverage report: `coverage/index.html`. Tests use
+isolated databases.
 
 ## 4. Technical Decisions
 
-- Plain Ruby CLI for the required stdin/stdout interface.
-- SQLite in a persistent volume, without a database server.
-- Pinned image and locked dependencies for reproducibility.
-- Single-purpose objects: feed parsers, criterion strategies, forms, services and a
-  CLI application that wires them (ADR-007).
+- Exact rational pricing.
+- SQLite persistence for searches and notices.
+- One route finder shared by all criteria.
+- Single-purpose objects: feed parsers, criterion strategies, forms, services and an
+  SQL repository (ADR-007).
 
 See [Architecture Decisions](docs/ARCHITECTURE-DECISIONS.md).
 
 ## 5. AI-Assisted Development
 
-AI assisted with requirement analysis, design and project setup. Build, startup,
-SQLite persistence and coverage generation were checked in Docker.
-
-Workflow: acceptance criteria → tests and implementation → review → validation → commit.
-Each ticket includes its code, tests and relevant documentation.
-
-See [AGENTS.md](AGENTS.md) for orchestration and role instructions,
-[the specification](docs/spec.md) for acceptance criteria and test scenarios, and
-[the implementation plan](plan.md) for phase status and verification evidence.
+AI assisted with specifications, tests, implementation and review.
+See [workflow](AGENTS.md), [requirements](docs/spec.md) and [plan](plan.md).
 
 ## 6. Limitations
 
-- The three route criteria are implemented; saved searches and manual pending
-  review are the remaining ticket.
-- Checks ran on ARM64; AMD64 execution is unverified.
-- Background notifications, catalog versioning and a web interface are out of scope.
-- Optional `--explain` output is deferred until the required tickets are complete.
+Manual catalog updates and pending review. Saved results reflect prices at review
+time. ARM64 verified; AMD64 unverified. Keep the Docker volume to preserve data.
