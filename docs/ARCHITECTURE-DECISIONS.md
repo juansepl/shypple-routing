@@ -134,9 +134,11 @@ tie-breaking costs.
 
 ## ADR-013 — Delivery steps
 
-Use one branch and five commits: project base, PLS-0001, WRT-0002, TST-0003 and
-SLD-0004. Each ticket includes its implementation, tests and documentation. Run
-relevant checks and existing tests before closing a ticket. The base contains
+Use one branch. Separate the base, AI workflow configuration and initial
+specification/plan into their own commits, then deliver one functional commit per
+requirement with tests and progress updates. `REQ-01` through `REQ-04` map to the
+original challenge tickets in `spec.md`. Follow the sequence in `../plan.md`.
+Run relevant checks and existing tests before closing a ticket. The base contains
 configuration, not functional tests.
 
 ## ADR-014 — Optional explanation

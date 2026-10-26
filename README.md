@@ -69,6 +69,8 @@ SQLite persistence and coverage generation were checked in Docker.
 Workflow: acceptance criteria → tests and implementation → review → validation → commit.
 Each ticket includes its code, tests and relevant documentation.
 
+See [AGENTS.md](AGENTS.md) for orchestration and role instructions.
+
 ## 6. Limitations
 
 - Route selection, pending searches and notifications are not implemented yet.
