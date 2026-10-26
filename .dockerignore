@@ -1,0 +1,9 @@
+.git
+.bundle
+vendor
+data
+coverage
+docs
+*.sqlite3
+*.sqlite3-*
+.DS_Store

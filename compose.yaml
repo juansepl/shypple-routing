@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    image: shypple-routing:dev
+    stdin_open: true
+    environment:
+      DATABASE_PATH: /app/data/shypple.sqlite3
+    volumes:
+      - sqlite-data:/app/data
+
+volumes:
+  sqlite-data:
+    name: shypple-routing-data
+    external: true

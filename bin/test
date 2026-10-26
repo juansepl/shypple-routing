@@ -1,0 +1,5 @@
+require_relative "../test/test_helper"
+
+test_files = Dir[File.expand_path("../test/**/*_test.rb", __dir__)].sort
+warn "No test cases yet. Coverage reports existing application code as untested." if test_files.empty?
+test_files.each { |path| require path }
