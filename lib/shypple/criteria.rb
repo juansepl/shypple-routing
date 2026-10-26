@@ -1,20 +1,13 @@
 require_relative "criteria/criterion"
 require_relative "criteria/cheapest_direct"
 require_relative "criteria/cheapest"
+require_relative "criteria/fastest"
 
 module Shypple
   # Route selection criteria, keyed by the name typed on the third input line.
   module Criteria
-    ALL = [CheapestDirect, Cheapest].to_h { |criterion| [criterion::NAME, criterion.new] }.freeze
-    # Accepted names whose tickets are not implemented yet (PLS-0001-TC-07).
-    PLANNED = %w[fastest].freeze
+    ALL = [CheapestDirect, Cheapest, Fastest].to_h { |criterion| [criterion::NAME, criterion.new] }.freeze
 
-    def self.fetch(name)
-      ALL.fetch(name) do
-        raise InvalidInput, "criterion #{name} is recognized but not implemented yet" if PLANNED.include?(name)
-
-        raise InvalidInput, "unknown criterion #{name}"
-      end
-    end
+    def self.fetch(name) = ALL.fetch(name) { raise InvalidInput, "unknown criterion #{name}" }
   end
 end

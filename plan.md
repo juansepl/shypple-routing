@@ -13,8 +13,8 @@ test scenarios belong in [docs/spec.md](docs/spec.md); working rules are in
 | Specification setup | Initial requirements, scenarios and implementation plan | Workflow setup | accepted |
 | REQ-01 | PLS-0001: cheapest direct route | Base and reviewed active specification | accepted |
 | REQ-02 | WRT-0002: cheapest direct or indirect route | REQ-01 | accepted |
-| REQ-03 | TST-0003: fastest direct or indirect route | REQ-02 | in_progress |
-| REQ-04 | SLD-0004: saved searches and manual pending review | All three criteria | pending |
+| REQ-03 | TST-0003: fastest direct or indirect route | REQ-02 | accepted |
+| REQ-04 | SLD-0004: saved searches and manual pending review | All three criteria | in_progress |
 | Delivery | Full acceptance, usage documentation and ZIP | All four tickets | pending |
 
 States: `pending`, `in_progress`, `needs_review`, `changes_requested`, `accepted`,
@@ -34,8 +34,8 @@ Functional commits are recorded below as each validated requirement is committed
 | 2 | `chore: configure AI-assisted development workflow` — AGENTS.md, role instructions and SDD rules | Committed as `d2324db` |
 | 3 | `docs: define requirements and implementation plan` — docs/spec.md, plan.md and their README links | Committed as `fc714f2` |
 | 4 | `feat: implement REQ-01 with automated tests` — code, tests and progress | Committed as `9af4ee0` |
-| 5 | `feat: implement REQ-02 with automated tests` — code, tests and progress | Included in this commit; Docker suite and independent review passed |
-| 6 | `feat: implement REQ-03 with automated tests` — code, tests and progress | Pending implementation |
+| 5 | `feat: implement REQ-02 with automated tests` — code, tests and progress | Committed as `5329541` |
+| 6 | `feat: implement REQ-03 with automated tests` — code, tests and progress | Included in this commit; Docker suite and independent review passed |
 | 7 | `feat: implement REQ-04 with automated tests` — code, tests and progress | Pending implementation |
 
 Include necessary architecture and usage-documentation updates with the change
@@ -136,15 +136,22 @@ Active stage: **WRITE TESTS → IMPLEMENT**. Use elapsed journey time including
 waits; direct and indirect routes participate regardless of price.
 
 - [x] Refine its criteria and elapsed-time scenarios.
-- [ ] Write tests and confirm expected failures.
-- [ ] Implement and verify the ticket and existing behavior.
-- [ ] Run real CLI cases asserting elapsed-time selection and the process contract.
-- [ ] Resolve review findings and record acceptance evidence.
+- [x] Write tests and confirm expected failures.
+- [x] Implement and verify the ticket and existing behavior.
+- [x] Run real CLI cases asserting elapsed-time selection and the process contract.
+- [x] Resolve review findings and record acceptance evidence.
 - [ ] Update progress and prepare the ticket commit when requested.
+
+Independent reviewer accepted the phase and matched an exhaustive fastest-route
+oracle across 200 deterministic generated catalogs. Persistence is not part of
+this acceptance.
 
 ## Phase 4 — SLD-0004
 
-- [ ] Finalize the administrative interface and persistence behavior in the spec.
+Active stage: **WRITE TESTS → IMPLEMENT**. Use the selected `--pending`,
+`--ack ID` and `--feed PATH` contract and one-table SQLite state model.
+
+- [x] Finalize the administrative interface and persistence behavior in the spec.
 - [ ] Write state-transition and cross-execution scenarios and tests.
 - [ ] Confirm expected failures, then implement using isolated test databases.
 - [ ] Verify the full suite and repeated manual-review behavior.
@@ -166,6 +173,8 @@ Add a compact row when actual ticket work starts; do not prefill successful resu
 | REQ-01 / PLS-0001-AC-01–04 (GREEN) | `test/acceptance/pls_0001_test.rb` real CLI subprocess cases, plus unit specs | Same Docker suite command; original-fixture console smoke | Exit 0; 49 runs (20 CLI), 350 assertions, no failures/errors/skips; 246/246 covered lines (100.00%); smoke returns `ABCD`, `589.30 USD` | Accepted independently; runtime verified and README drift fixed/rechecked |
 | REQ-02 / WRT-0002-AC-01–04 (RED) | Eight additional real-CLI cases | Same Docker suite command | Exit 1; 28 tests, 265 assertions, eight expected failures, zero errors | New cheapest-route behavior absent; prior cases stayed green |
 | REQ-02 / WRT-0002-AC-01–04 (GREEN) | `test/acceptance/wrt_0002_test.rb`, including 3+ legs, dates, exact sums, ties and cyclic input | Same Docker suite command; original-fixture cheapest smoke | Exit 0; 60 runs (28 CLI), 385 assertions, no failures/errors/skips; 265/265 covered lines (100.00%); `ERXQ → ETRG` | Accepted independently; current image matched source and tests |
+| REQ-03 / TST-0003-AC-01–03 (RED) | Nine added real-CLI fastest cases | Same Docker suite command | Exit 1; 37 tests, 298 assertions, nine expected failures, zero errors | Prior 28 cases remained green; fastest implementation in progress |
+| REQ-03 / TST-0003-AC-01–03 (GREEN) | Nine fastest CLI cases in `test/acceptance/tst_0003_test.rb`, including waits and prefix dominance | Same Docker suite command; original-fixture fastest smoke | Exit 0; 70 runs (37 CLI), 421 assertions, zero failures/errors/skips; 270/270 lines covered (100.00%); `QRST`, 17 days | Accepted independently; current image and full elapsed-time behavior verified |
 
 Record expected red failures separately from unexpected failures. Build or coverage
 results alone do not prove functional acceptance. If a check is not run, say why.

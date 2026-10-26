@@ -146,16 +146,18 @@ required exchanges; only `MNOP` has conflicting rates.
 
 ## ADR-012 — Connect compatible legs
 
-**Proposed:** represent sailings as a temporal graph connected by ports and dates.
-Use dynamic programming: minimum accumulated cost for `cheapest`, latest initial
-departure per reachable sailing for `fastest`; retain predecessors to reconstruct
-the route. No artificial two-leg limit or blanket ban on revisiting ports.
+Process sailings chronologically and retain one best path per reachable sailing:
+minimum accumulated cost for `cheapest`, latest initial departure for `fastest`.
+Ports and dates determine valid connections. No artificial two-leg limit or
+blanket ban on revisiting ports is needed.
 
 Selected ties: fewer legs, then lexicographic sailing-code sequence. Equal-value
 quotes of one sailing use the smallest original currency/amount string pair only
-after applying the higher-price rule. Initial edge
-construction can be O(N²), followed by O(N + E) traversal, plus reconstruction and
-tie-breaking costs.
+after applying the higher-price rule. The compact implementation scans earlier
+paths instead of building an explicit graph. With N sailings and path length L,
+worst-case work is O(N²L), plus exact-number arithmetic; retained paths use O(NL)
+space. This avoids enumerating exponentially many itineraries. Cache path keys or
+index connections only if larger feeds justify the extra code.
 
 Each criterion is a strategy object registered by name in `Criteria`. It supplies its
 ranking keys, so `RouteFinder` never branches on criterion names; a new criterion

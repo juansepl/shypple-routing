@@ -13,11 +13,6 @@ describe Shypple::Criteria do
       error = assert_raises(Shypple::InvalidInput) { Shypple::Criteria.fetch("cheap") }
       assert_equal "unknown criterion cheap", error.message
     end
-
-    it "reports a planned criterion as not implemented" do
-      error = assert_raises(Shypple::InvalidInput) { Shypple::Criteria.fetch("fastest") }
-      assert_equal "criterion fastest is recognized but not implemented yet", error.message
-    end
   end
 
   describe "CheapestDirect" do
@@ -37,6 +32,24 @@ describe Shypple::Criteria do
       connected = route(leg("A", destination: "ESBCN", cost: 10), leg("B", origin: "ESBCN", cost: 10))
       cheaper = route(leg("C", destination: "ESBCN", cost: 5), leg("D", origin: "ESBCN", cost: 10))
       assert_equal [cheaper, direct, connected], [direct, connected, cheaper].sort_by { |candidate| criterion.final_key(candidate) }
+    end
+  end
+
+  describe "Fastest" do
+    let(:criterion) { Shypple::Criteria::Fastest.new }
+
+    it "ranks by elapsed time from first departure to last arrival, waits included" do
+      waiting = route(leg("A", destination: "ESBCN", arrival: "2022-01-03"),
+                      leg("B", origin: "ESBCN", departure: "2022-01-08", arrival: "2022-01-09"))
+      direct = route(leg("C", departure: "2022-01-01", arrival: "2022-01-07"))
+      assert_equal direct, [waiting, direct].min_by { |candidate| criterion.final_key(candidate) }
+    end
+
+    it "keeps the latest first departure among prefixes ending in the same sailing" do
+      onward = leg("X", origin: "ESBCN", departure: "2022-01-06", arrival: "2022-01-10")
+      early = route(leg("A", destination: "ESBCN", departure: "2022-01-01", arrival: "2022-01-04"), onward)
+      late = route(leg("B", destination: "ESBCN", departure: "2022-01-02", arrival: "2022-01-05"), onward)
+      assert_equal late, [early, late].min_by { |candidate| criterion.prefix_key(candidate) }
     end
   end
 end
