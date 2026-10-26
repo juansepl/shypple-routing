@@ -69,7 +69,9 @@ SQLite persistence and coverage generation were checked in Docker.
 Workflow: acceptance criteria → tests and implementation → review → validation → commit.
 Each ticket includes its code, tests and relevant documentation.
 
-See [AGENTS.md](AGENTS.md) for orchestration and role instructions.
+See [AGENTS.md](AGENTS.md) for orchestration and role instructions,
+[the specification](docs/spec.md) for acceptance criteria and test scenarios, and
+[the implementation plan](plan.md) for phase status and verification evidence.
 
 ## 6. Limitations
 
